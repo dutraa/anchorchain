@@ -1,0 +1,36 @@
+# Build artifacts
+bin/
+anchorchaind
+anchor-cli
+*.exe
+*.dll
+*.so
+
+# Local configs / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Datastores / devnet state
+*.db
+*.db*
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+.factom/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Tool caches
+coverage.out
+.codex-debug/
+**/node_modules/
+**/.next/
+
+!cmd/
+!cmd/**

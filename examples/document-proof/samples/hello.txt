@@ -1,0 +1,2 @@
+AnchorChain demo sample file.
+Change this text, rerun the demo, and the local SHA-256 hash should change.

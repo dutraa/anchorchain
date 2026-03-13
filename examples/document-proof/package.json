@@ -1,0 +1,19 @@
+{
+  "name": "anchorchain-document-proof-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "demo": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@anchorchain/sdk-js": "file:../../sdk/js"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.10",
+    "tsx": "4.20.5",
+    "typescript": "5.8.3"
+  }
+}
