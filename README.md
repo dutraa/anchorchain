@@ -1,108 +1,169 @@
 # AnchorChain
 
-> AnchorChain v0.1.0 (Developer Preview)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Status](https://img.shields.io/badge/status-developer%20preview-orange)
+![Go](https://img.shields.io/badge/go-1.22%2B-blue)
 
-AnchorChain is a developer-friendly interface for the **Factom protocol**, designed to make it easy to create chains, write entries, and verify cryptographic receipts through a small HTTP API and CLI.
+> Immutable records. Simple developer tools. Built on Factom.
 
-Instead of interacting directly with the lower-level Factom RPC interface, AnchorChain provides:
+AnchorChain is a **developer-friendly interface for the Factom protocol** designed to make it easy to create chains, write entries, and verify cryptographic receipts using a clean HTTP API, CLI, and web explorer.
+
+Instead of interacting directly with low-level Factom RPC calls, AnchorChain provides:
 
 - a simple HTTP API
-- a CLI for quick interaction
+- a CLI for rapid interaction
 - structured payload support (JSON schemas)
-- receipt verification
-- a local devnet environment for experimentation
+- cryptographic receipt verification
+- a local devnet for experimentation
+- a web explorer for browsing anchored data
 
-AnchorChain is intended for developers building systems that require **tamper-evident logs, proofs, or immutable records**.
+AnchorChain is intended for developers building systems that require **tamper‑evident logs, proofs, or immutable records**.
 
 Example use cases include:
 
-- document proof and verification
+- document proof & verification
 - dataset provenance
 - audit logs
 - compliance records
 - AI training dataset integrity
 - timestamped research records
+- supply chain records
 
 ---
+
+# Quick Start
 
 ## Prerequisites
 
 - Go 1.22+
 - `make`
 
+Check Go installation:
+
+```
+go version
+```
+
 ---
 
-## Build
+# Build
 
-```bash
+```
 make build
 ```
 
 This creates:
 
-- `./bin/anchorchaind`
-- `./bin/anchor-cli`
+```
+./bin/anchorchaind
+./bin/anchor-cli
+```
 
 ---
 
-## Run a Local Devnet
+# Run a Local Devnet
 
-```bash
+Start the local node:
+
+```
 ./bin/anchorchaind devnet
 ```
 
-Devnet starts a single local node with:
+Devnet launches:
 
-- HTTP API at `http://127.0.0.1:8081`
-- Legacy Factom RPC at `localhost:8088`
-- A preloaded devnet Entry Credit key so writes work without `--ec-key`
+| Service | Address |
+|-------|--------|
+| AnchorChain API | http://127.0.0.1:8081 |
+| Factom RPC | localhost:8088 |
 
-Leave that process running in one terminal.
+The devnet automatically loads a **funded Entry Credit key** so writes work without specifying `--ec-key`.
+
+Leave this terminal running.
 
 ---
 
-## First Commands
+# First Commands
 
-In a second terminal:
+Open a second terminal.
 
 Check node health:
 
-```bash
+```
 ./bin/anchor-cli node health
 ```
 
 Create a chain:
 
-```bash
+```
 ./bin/anchor-cli chain create   --extid demo   --schema json   --payload '{"hello":"anchorchain"}'
 ```
 
-Copy the returned `Chain ID`, then write a second entry:
+Example output:
 
-```bash
+```
+Chain ID   : <CHAIN_ID>
+Entry Hash : <ENTRY_HASH>
+```
+
+Write another entry:
+
+```
 ./bin/anchor-cli entry write   --chain <CHAIN_ID>   --schema json   --payload '{"step":2}'
 ```
 
 ---
 
-## Inspect Data
+# Inspect Data
 
-Inspect the chain and entries:
-
-```bash
+```
 ./bin/anchor-cli chain inspect --chain <CHAIN_ID>
-./bin/anchor-cli chain tail --chain <CHAIN_ID> --limit 10
-./bin/anchor-cli entry show --entry <ENTRY_HASH>
-./bin/anchor-cli receipt verify --entry <ENTRY_HASH>
+
+./bin/anchor-cli chain tail   --chain <CHAIN_ID>   --limit 10
+
+./bin/anchor-cli entry show   --entry <ENTRY_HASH>
+
+./bin/anchor-cli receipt verify   --entry <ENTRY_HASH>
 ```
 
-You can pass `--json` to any `anchor-cli` command for raw API output.
+Add `--json` to any command to return raw API output.
 
 ---
 
-## Project Components
+# Using the Web Explorer
 
-AnchorChain includes several components intended for developers:
+AnchorChain includes a lightweight **web explorer** that lets you browse chains and entries visually.
+
+Start the explorer from the project root:
+
+```
+cd explorer
+npm install
+npm run dev
+```
+
+The explorer will start at:
+
+```
+http://localhost:3000
+```
+
+From the explorer you can:
+
+- search for chains
+- view entries in a chain
+- inspect entry payloads
+- verify receipts
+- explore anchored data visually
+
+The explorer connects to your local devnet API at:
+
+```
+http://localhost:8081
+```
+
+---
+
+# Project Components
 
 | Component | Description |
 |-----------|-------------|
@@ -111,60 +172,79 @@ AnchorChain includes several components intended for developers:
 | `explorer/` | Web UI for browsing chains and entries |
 | `sdk/js` | JavaScript SDK |
 | `examples/` | Example applications |
-| `docs/` | Documentation |
+| `docs/` | Project documentation |
 
 ---
 
-## Docs
+# Documentation
 
-- Architecture: `docs/architecture.md`
-- Demo: `docs/demo.md`
-- Devnet guide: `docs/devnet.md`
-- Devnet deployment: `docs/deploy-devnet.md`
-- API reference: `docs/api.md`
+- `docs/architecture.md` — system architecture
+- `docs/demo.md` — project demo walkthrough
+- `docs/devnet.md` — devnet details
+- `docs/deploy-devnet.md` — deploying devnet nodes
+- `docs/api.md` — HTTP API reference
 
 ---
 
-## Troubleshooting
+# Contributing
 
-**Missing Go**
+We welcome contributions from the community.
 
-Run:
+Open issues are available for:
 
-```bash
+- Python SDK
+- Docker devnet
+- Public devnet deployment
+- AI dataset provenance examples
+
+If you'd like to contribute:
+
+1. Fork the repo
+2. Create a feature branch
+3. Submit a pull request
+
+---
+
+# Troubleshooting
+
+### Missing Go
+
+```
 go version
 ```
 
-If Go is not installed or is older than 1.22, install or update Go first.
+If Go is missing or older than 1.22, install the latest Go release.
 
 ---
 
-**Missing `make`**
+### Missing `make`
 
-Install `make`, or run the build commands manually:
+Build manually:
 
-```bash
+```
 mkdir -p bin
+
 go build -o bin/anchorchaind ./cmd/anchorchaind
 go build -o bin/anchor-cli ./cmd/anchor-cli
 ```
 
 ---
 
-**Build artifacts not committed**
+### Missing binaries
 
-`bin/` is generated locally by `make build`.  
-If the binaries are missing, rebuild them locally.
+`bin/` artifacts are generated locally by `make build`.
+
+Rebuild them if necessary.
 
 ---
 
-## Attribution
+# Attribution
 
-This software is derived from the open-source Factom protocol and remains licensed under the MIT License.
+AnchorChain builds on the open‑source **Factom Protocol** and retains the MIT License.
 
 ```
-Copyright (c) Factom Foundation 2017.
-Licensed under the MIT License.
+Copyright (c) Factom Foundation 2017
+Licensed under the MIT License
 ```
 
-All protocol-level code under `node/` is preserved to maintain upstream compatibility.
+All protocol‑level code under `node/` remains preserved to maintain upstream compatibility.
