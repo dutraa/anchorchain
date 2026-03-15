@@ -22,6 +22,15 @@ anchor-cli
 *.swo
 .factom/
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+
 # OS cruft
 .DS_Store
 Thumbs.db
