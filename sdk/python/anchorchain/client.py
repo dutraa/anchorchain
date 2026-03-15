@@ -62,6 +62,8 @@ def _classify_api_error(status: int, message: str) -> tuple[AnchorChainErrorKind
     normalized = message.strip().lower()
     if "missing chain head" in normalized:
         return "missing_chain_head", status in (404, 202)
+    if "chain is pending confirmation" in normalized:
+        return "missing_chain_head", True
     if "receipt not available" in normalized:
         return "receipt_not_ready", status == 404
     if "receipt creation error" in normalized:
@@ -260,7 +262,7 @@ class AnchorChainClient:
         else:
             response_body = response.text
 
-        if not response.ok:
+        if not response.ok or self._is_api_error_body(response_body):
             message = _resolve_message(
                 response_body,
                 f"AnchorChain API request failed with status {response.status_code}",
@@ -284,6 +286,14 @@ class AnchorChainClient:
             )
 
         return response_factory(response_body)
+
+    def _is_api_error_body(self, response_body: Any) -> bool:
+        if not isinstance(response_body, dict):
+            return False
+        error_value = response_body.get("error")
+        if isinstance(error_value, str) and error_value.strip():
+            return True
+        return False
 
     def _build_headers(self, *, has_body: bool) -> Dict[str, str]:
         headers: Dict[str, str] = {}

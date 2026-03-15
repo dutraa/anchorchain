@@ -87,6 +87,7 @@ On local devnet, write requests may succeed before follow-up reads or receipts a
 - `Missing Chain Head` usually means the chain is not readable from the API yet.
 - `receipt not available` means the entry exists but receipt data is not ready yet.
 - `Receipt creation error` can appear temporarily on local devnet while receipt generation lags or fails.
+- `chain is pending confirmation` means the write was accepted but chain/list reads are not ready yet.
 - network errors such as connection refusal usually mean the local API is not up yet.
 
 `AnchorChainSDKError` preserves the raw response `status` and `body`, and marks common temporary states as `retriable`.

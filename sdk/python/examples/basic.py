@@ -15,7 +15,13 @@ def describe_error(error: Exception) -> str:
     return str(error)
 
 
-def retry(label: str, fn: Callable[[], T], attempts: int = 24, delay_seconds: int = 5) -> T:
+def retry(
+    label: str,
+    fn: Callable[[], T],
+    attempts: int = 24,
+    delay_seconds: int = 5,
+    should_retry: Optional[Callable[[Exception], bool]] = None,
+) -> T:
     last_error: Optional[Exception] = None
     for attempt in range(1, attempts + 1):
         try:
@@ -23,6 +29,8 @@ def retry(label: str, fn: Callable[[], T], attempts: int = 24, delay_seconds: in
         except Exception as error:
             last_error = error
             retriable = not isinstance(error, AnchorChainSDKError) or error.retriable
+            if should_retry is not None:
+                retriable = retriable or should_retry(error)
             if attempt == attempts or not retriable:
                 break
             print(f"[pending] {label} not ready yet; retrying ({attempt}/{attempts}): {describe_error(error)}")
@@ -33,15 +41,43 @@ def retry(label: str, fn: Callable[[], T], attempts: int = 24, delay_seconds: in
 
 
 def wait_for_chain(client: AnchorChainClient, chain_id: str):
-    return retry("Chain", lambda: client.get_chain(chain_id))
+    return retry("Chain", lambda: client.get_chain(chain_id), attempts=30, delay_seconds=4)
+
+
+def wait_for_entries(client: AnchorChainClient, chain_id: str):
+    return retry(
+        "Entries",
+        lambda: client.get_entries(chain_id, limit=10, offset=0),
+        attempts=30,
+        delay_seconds=4,
+    )
 
 
 def wait_for_entry(client: AnchorChainClient, entry_hash: str):
-    return retry("Entry", lambda: client.get_entry(entry_hash))
+    return retry(
+        "Entry",
+        lambda: client.get_entry(entry_hash),
+        attempts=30,
+        delay_seconds=4,
+        should_retry=is_entry_lookup_pending,
+    )
 
 
 def wait_for_receipt(client: AnchorChainClient, entry_hash: str):
-    return retry("Receipt", lambda: client.verify_receipt(entry_hash=entry_hash, include_raw_entry=False))
+    return retry(
+        "Receipt",
+        lambda: client.verify_receipt(entry_hash=entry_hash, include_raw_entry=False),
+        attempts=48,
+        delay_seconds=8,
+    )
+
+
+def is_entry_lookup_pending(error: Exception) -> bool:
+    return (
+        isinstance(error, AnchorChainSDKError)
+        and error.status == 404
+        and "entry not found" in error.message.strip().lower()
+    )
 
 
 def main() -> int:
@@ -73,12 +109,6 @@ def main() -> int:
     )
     print("[ok] Write entry:", written)
 
-    chain = wait_for_chain(client, created.chain_id)
-    print("[ok] Chain:", chain)
-
-    entries = client.get_entries(created.chain_id, limit=10, offset=0)
-    print("[ok] Entries:", entries)
-
     entry_hash = written.entry_hash or created.entry_hash
     if not entry_hash:
         raise RuntimeError("Entry write did not return entry_hash.")
@@ -86,6 +116,13 @@ def main() -> int:
     entry = wait_for_entry(client, entry_hash)
     print("[ok] Entry:", entry)
 
+    chain = wait_for_chain(client, created.chain_id)
+    print("[ok] Chain:", chain)
+
+    entries = wait_for_entries(client, created.chain_id)
+    print("[ok] Entries:", entries)
+
+    print("[wait] Waiting for receipt confirmation. Local devnet receipts can take a bit longer.")
     receipt = wait_for_receipt(client, entry_hash)
     print("[ok] Receipt:", receipt)
     return 0
