@@ -1,0 +1,18 @@
+services:
+  anchorchain-devnet:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8081:8081"
+      - "8088:8088"
+      - "8090:8090"
+    volumes:
+      - anchorchain-factom-data:/root/.factom
+    environment:
+      ANCHORCHAIN_API_ADDR: 0.0.0.0:8081
+      ANCHORCHAIN_API_ALLOW_REMOTE: "1"
+      FACTOMD_RPC_ADDR: 127.0.0.1:8088
+
+volumes:
+  anchorchain-factom-data:

@@ -1,0 +1,7 @@
+.git
+.github
+bin
+explorer/node_modules
+sdk/js/node_modules
+**/__pycache__
+*.log
