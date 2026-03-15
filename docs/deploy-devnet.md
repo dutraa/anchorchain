@@ -1,5 +1,7 @@
 # Deploying a Public Devnet Node
 
+For a minimal Docker-based deployment artifact, see [deploy/devnet/README.md](../deploy/devnet/README.md).
+
 This guide shows a conservative way to run a single public AnchorChain devnet node on an Ubuntu or Debian-like Linux VM.
 
 This is for development and testing only. `anchorchaind devnet` is a non-production mode, and devnet state may be reset. Do not treat it as durable infrastructure.

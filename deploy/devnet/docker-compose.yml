@@ -1,0 +1,21 @@
+services:
+  anchorchain-public-devnet:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+      - "127.0.0.1:8088:8088"
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - anchorchain-public-devnet-data:/root/.factom
+    environment:
+      ANCHORCHAIN_API_ADDR: 0.0.0.0:8081
+      ANCHORCHAIN_API_ALLOW_REMOTE: "1"
+      FACTOMD_RPC_ADDR: 127.0.0.1:8088
+      # Optional: require a token for API access.
+      # ANCHORCHAIN_API_TOKEN: "replace-me"
+
+volumes:
+  anchorchain-public-devnet-data:
