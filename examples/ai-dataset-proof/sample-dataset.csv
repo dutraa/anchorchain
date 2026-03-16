@@ -1,0 +1,4 @@
+id,text,label
+1,"anchorchain keeps only proofs on-chain",positive
+2,"dataset files stay local while hashes are anchored",neutral
+3,"verifiable provenance is useful for AI training data",positive
