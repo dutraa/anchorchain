@@ -4,247 +4,355 @@
 ![Status](https://img.shields.io/badge/status-developer%20preview-orange)
 ![Go](https://img.shields.io/badge/go-1.22%2B-blue)
 
-> Immutable records. Simple developer tools. Built on Factom.
+## AnchorChain
 
-AnchorChain is a **developer-friendly interface for the Factom protocol** designed to make it easy to create chains, write entries, and verify cryptographic receipts using a clean HTTP API, CLI, and web explorer.
+**Immutable records. Simple developer tools. Built on Factom.**
 
-Instead of interacting directly with low-level Factom RPC calls, AnchorChain provides:
+AnchorChain is a developer-friendly interface for the Factom protocol designed to make it easy to:
 
-- a simple HTTP API
-- a CLI for rapid interaction
-- structured payload support (JSON schemas)
-- cryptographic receipt verification
-- a local devnet for experimentation
-- a web explorer for browsing anchored data
+- Create chains
+- Write entries
+- Verify cryptographic receipts
+- Anchor application data permanently to a blockchain
 
-AnchorChain is intended for developers building systems that require **tamper‑evident logs, proofs, or immutable records**.
+Instead of interacting with low-level Factom RPC calls, AnchorChain provides a modern developer stack:
 
-Example use cases include:
+- HTTP API
+- CLI tooling
+- Structured payload support
+- Cryptographic receipt verification
+- Local devnet for testing
+- Web explorer for browsing anchored data
 
-- document proof & verification
-- dataset provenance
-- audit logs
-- compliance records
-- AI training dataset integrity
-- timestamped research records
-- supply chain records
+AnchorChain makes **blockchain anchoring accessible to application developers**, auditors, and data integrity platforms.
+
+---
+
+# Why AnchorChain?
+
+Factom is one of the most efficient protocols for anchoring data to blockchain systems, but its tooling can be difficult for new developers.
+
+AnchorChain solves that problem by providing:
+
+- a clean API
+- simple CLI commands
+- structured data schemas
+- developer-first workflows
+- easy local testing environments
+
+The goal is simple:
+
+**Make anchoring data to blockchain as easy as writing to an API.**
+
+---
+
+# Architecture
+
+AnchorChain consists of several components:
+
+```
+Applications
+     │
+     ▼
+AnchorChain API
+     │
+     ▼
+Factom Network
+     │
+     ▼
+Bitcoin Anchoring
+```
+
+Components:
+
+| Component | Purpose |
+|--------|--------|
+| API Server | REST interface for writing and verifying entries |
+| CLI | Developer tool for interacting with chains |
+| Explorer | Web interface to browse anchored data |
+| Devnet | Local Factom test network |
+| Receipt Engine | Cryptographic proof verification |
 
 ---
 
 # Quick Start
 
-## Prerequisites
+## Clone the Repository
+
+```bash
+git clone https://github.com/anchorchain/anchorchain.git
+cd anchorchain
+```
+
+---
+
+## Install Dependencies
+
+AnchorChain requires:
 
 - Go 1.22+
-- `make`
+- Docker (optional for devnet)
 
-Check Go installation:
+Install Go dependencies:
 
-```
-go version
-```
-
----
-
-# Build
-
-```
-make build
-```
-
-This creates:
-
-```
-./bin/anchorchaind
-./bin/anchor-cli
+```bash
+go mod download
 ```
 
 ---
 
-# Run a Local Devnet
+# Running AnchorChain
 
-Start the local node:
+## Start the API Server
 
-```
-./bin/anchorchaind devnet
-```
-
-Devnet launches:
-
-| Service | Address |
-|-------|--------|
-| AnchorChain API | http://127.0.0.1:8081 |
-| Factom RPC | localhost:8088 |
-
-The devnet automatically loads a **funded Entry Credit key** so writes work without specifying `--ec-key`.
-
-Leave this terminal running.
-
----
-
-# First Commands
-
-Open a second terminal.
-
-Check node health:
-
-```
-./bin/anchor-cli node health
+```bash
+go run cmd/server/main.go
 ```
 
-Create a chain:
+Server will start on:
 
 ```
-./bin/anchor-cli chain create   --extid demo   --schema json   --payload '{"hello":"anchorchain"}'
-```
-
-Example output:
-
-```
-Chain ID   : <CHAIN_ID>
-Entry Hash : <ENTRY_HASH>
-```
-
-Write another entry:
-
-```
-./bin/anchor-cli entry write   --chain <CHAIN_ID>   --schema json   --payload '{"step":2}'
+http://localhost:8080
 ```
 
 ---
 
-# Inspect Data
+# Using the CLI
 
-```
-./bin/anchor-cli chain inspect --chain <CHAIN_ID>
+AnchorChain includes a CLI tool for interacting with the network.
 
-./bin/anchor-cli chain tail   --chain <CHAIN_ID>   --limit 10
+Build the CLI:
 
-./bin/anchor-cli entry show   --entry <ENTRY_HASH>
-
-./bin/anchor-cli receipt verify   --entry <ENTRY_HASH>
+```bash
+go build -o anchorchain cmd/cli/main.go
 ```
 
-Add `--json` to any command to return raw API output.
+Example usage:
+
+### Create a Chain
+
+```bash
+./anchorchain chain create
+```
+
+### Write an Entry
+
+```bash
+./anchorchain entry write \
+  --chain <CHAIN_ID> \
+  --data '{"message":"Hello AnchorChain"}'
+```
+
+### Get Chain Entries
+
+```bash
+./anchorchain chain entries <CHAIN_ID>
+```
 
 ---
 
-# Using the Web Explorer
+# Running a Local Devnet
 
-AnchorChain includes a lightweight **web explorer** that lets you browse chains and entries visually.
+AnchorChain includes a **local Factom devnet** for testing.
 
-Start the explorer from the project root:
+Start the devnet:
 
-```
-cd explorer
-npm install
-npm run dev
+```bash
+docker compose up
 ```
 
-The explorer will start at:
+This launches:
+
+- factomd
+- factom-walletd
+- AnchorChain API
+
+Once running, you can test anchoring locally without interacting with the public network.
+
+---
+
+# Docker Deployment
+
+Build the container:
+
+```bash
+docker build -t anchorchain .
+```
+
+Run it:
+
+```bash
+docker run -p 8080:8080 anchorchain
+```
+
+---
+
+# API Overview
+
+AnchorChain exposes a simple REST API.
+
+### Create Chain
+
+```
+POST /chains
+```
+
+Response:
+
+```
+{
+  "chain_id": "..."
+}
+```
+
+---
+
+### Write Entry
+
+```
+POST /chains/{chain_id}/entries
+```
+
+Payload:
+
+```
+{
+  "data": {...}
+}
+```
+
+---
+
+### Verify Receipt
+
+```
+GET /receipts/{entry_hash}
+```
+
+Returns cryptographic proof that the data was anchored.
+
+---
+
+# Web Explorer
+
+AnchorChain includes a lightweight explorer UI that allows users to:
+
+- browse chains
+- inspect entries
+- verify receipts
+- visualize anchored data
+
+Explorer runs at:
 
 ```
 http://localhost:3000
 ```
 
-From the explorer you can:
+---
 
-- search for chains
-- view entries in a chain
-- inspect entry payloads
-- verify receipts
-- explore anchored data visually
-
-The explorer connects to your local devnet API at:
+# Project Structure
 
 ```
-http://localhost:8081
+anchorchain/
+│
+├── cmd/
+│   ├── server/
+│   └── cli/
+│
+├── internal/
+│   ├── api/
+│   ├── chains/
+│   ├── receipts/
+│   └── factom/
+│
+├── explorer/
+│
+├── devnet/
+│
+├── docker/
+│
+└── README.md
 ```
 
 ---
 
-# Project Components
+# Example Use Cases
 
-| Component | Description |
-|-----------|-------------|
-| `anchorchaind` | Node + HTTP API |
-| `anchor-cli` | Command line interface |
-| `explorer/` | Web UI for browsing chains and entries |
-| `sdk/js` | JavaScript SDK |
-| `examples/` | Example applications |
-| `docs/` | Project documentation |
+AnchorChain can be used for:
+
+- document timestamping
+- supply chain proofs
+- audit trails
+- compliance logging
+- data integrity verification
+- legal evidence anchoring
+
+Industries that benefit from immutable proofs include:
+
+- finance
+- healthcare
+- government
+- legal
+- digital identity
+- research
 
 ---
 
-# Documentation
+# Roadmap
 
-- `docs/architecture.md` — system architecture
-- `docs/demo.md` — project demo walkthrough
-- `docs/devnet.md` — devnet details
-- `docs/deploy-devnet.md` — deploying devnet nodes
-- `docs/api.md` — HTTP API reference
+### v0.1
+
+- basic API
+- CLI tooling
+- local devnet
+- receipt verification
+
+### v0.2
+
+- schema validation
+- batch anchoring
+- improved explorer
+
+### v0.3
+
+- SDKs (Go / JS / Python)
+- hosted node support
+- authentication layer
+
+### v1.0
+
+- production release
+- scaling optimizations
+- enterprise integrations
 
 ---
 
 # Contributing
 
-We welcome contributions from the community.
+Contributions are welcome.
 
-Open issues are available for:
+You can help by:
 
-- Python SDK
-- Docker devnet
-- Public devnet deployment
-- AI dataset provenance examples
-
-If you'd like to contribute:
-
-1. Fork the repo
-2. Create a feature branch
-3. Submit a pull request
+- submitting pull requests
+- opening issues
+- suggesting features
+- improving documentation
 
 ---
 
-# Troubleshooting
+# License
 
-### Missing Go
-
-```
-go version
-```
-
-If Go is missing or older than 1.22, install the latest Go release.
+MIT License
 
 ---
 
-### Missing `make`
+# Learn More
 
-Build manually:
-
-```
-mkdir -p bin
-
-go build -o bin/anchorchaind ./cmd/anchorchaind
-go build -o bin/anchor-cli ./cmd/anchor-cli
-```
+Factom Protocol  
+https://www.factomprotocol.org
 
 ---
 
-### Missing binaries
+# AnchorChain
 
-`bin/` artifacts are generated locally by `make build`.
-
-Rebuild them if necessary.
-
----
-
-# Attribution
-
-AnchorChain builds on the open‑source **Factom Protocol** and retains the MIT License.
-
-```
-Copyright (c) Factom Foundation 2017
-Licensed under the MIT License
-```
-
-All protocol‑level code under `node/` remains preserved to maintain upstream compatibility.
+**Immutable records for the modern internet.**
